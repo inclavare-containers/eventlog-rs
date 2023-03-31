@@ -1,8 +1,11 @@
 [package]
 name = "eventlog-rs"
+description = "Rust Parsing tool for TCG EventLog"
 version = "0.1.0"
-edition = "2018"
-authors = ["Zhou Liang <liang.a.zhou@linux.alibaba.com>"]
+authors = ["Jiale Zhang <zhangjiale@linux.alibaba.com>"]
+edition = "2021"
+homepage = "https://github.com/inclavare-containers/eventlog-rs"
+license = "Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
