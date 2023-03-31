@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use byteorder::{LittleEndian, ReadBytesExt};
+use core::fmt;
 use enums::{EVENTLOG_TYPES, TCG_ALGORITHMS};
 use sha2::{Digest, Sha384};
 use std::collections::HashMap;
@@ -9,38 +10,31 @@ const RTMR_LENGTH_BY_BYTES: usize = 48;
 
 mod enums;
 
-#[macro_use]
-extern crate log;
-
-#[derive(Debug)]
-pub struct EventlogInfo {
-    pub revision: u8,
-    pub checksum: u8,
-    pub oem_id: String,
-    pub log_length: u64,
-    pub base_address: u64,
-}
-
-impl TryFrom<Vec<u8>> for EventlogInfo {
-    type Error = anyhow::Error;
-
-    fn try_from(data: Vec<u8>) -> Result<Self, Self::Error> {
-        Ok(EventlogInfo {
-            revision: data[8],
-            checksum: data[9],
-            oem_id: String::from(std::str::from_utf8(&data[10..16])?),
-            log_length: (&data[40..48]).read_u64::<LittleEndian>()?,
-            base_address: (&data[48..56]).read_u64::<LittleEndian>()?,
-        })
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Eventlog {
     pub log: Vec<EventlogEntry>,
 }
 
-#[derive(Debug, Clone)]
+impl fmt::Display for Eventlog {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut parsed_el = String::default();
+        for event_entry in self.log.clone() {
+            parsed_el = format!(
+                "{}\nEvent Entry:\n\tRTMR: {}\n\tEvent Type: {}\n\tDigest Algorithm: {}\n\tDigest: {}\n\tEvent Desc: {}\n",
+                parsed_el,
+                event_entry.target_measurement_registry,
+                event_entry.event_type,
+                event_entry.digests[0].algorithm,
+                hex::encode(event_entry.digests[0].digest.clone()),
+                hex::encode(event_entry.event_desc),
+            );
+        }
+
+        write!(f, "{parsed_el}")
+    }
+}
+
+#[derive(Clone)]
 pub struct EventlogEntry {
     pub target_measurement_registry: u32,
     pub event_type: String,
@@ -104,9 +98,6 @@ impl TryFrom<Vec<u8>> for Eventlog {
             let target_measurement_registry =
                 (&data[index..(index + 4)]).read_u32::<LittleEndian>()?;
             index += 4;
-            if target_measurement_registry == 0xFFFFFFFF {
-                break;
-            }
 
             let event_type_num = (&data[index..(index + 4)]).read_u32::<LittleEndian>()?;
             index += 4;
@@ -129,6 +120,12 @@ impl TryFrom<Vec<u8>> for Eventlog {
                 let vendor_size = data[index];
                 index += vendor_size as usize + 1;
                 continue;
+            }
+
+            if target_measurement_registry == 0xFFFFFFFF
+                || target_measurement_registry == 0x00000000
+            {
+                break;
             }
 
             let digest_count = (&data[index..(index + 4)]).read_u32::<LittleEndian>()?;
@@ -163,8 +160,6 @@ impl TryFrom<Vec<u8>> for Eventlog {
                 digests,
                 event_desc,
             };
-
-            debug!("{:?}\n\n", &eventlog_entry);
 
             event_log.push(eventlog_entry)
         }

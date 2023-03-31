@@ -1,7 +1,7 @@
 [package]
 name = "eventlog-rs"
 description = "Rust Parsing tool for TCG EventLog"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Jiale Zhang <zhangjiale@linux.alibaba.com>"]
 edition = "2021"
 homepage = "https://github.com/inclavare-containers/eventlog-rs"
@@ -18,5 +18,6 @@ log = "0.4.14"
 env_logger = "0.8.3"
 lazy_static = "1.4.0"
 byteorder = "1"
+hex = "0.4.3"
 sha2 = "0.10"
 anyhow = "1.0"
