@@ -26,7 +26,7 @@ impl fmt::Display for Eventlog {
                 event_entry.event_type,
                 event_entry.digests[0].algorithm,
                 hex::encode(event_entry.digests[0].digest.clone()),
-                String::from_utf8(event_entry.event_desc).unwrap_or("[bytes]".to_string()),
+                hex::encode(event_entry.event_desc),
             );
         }
 
