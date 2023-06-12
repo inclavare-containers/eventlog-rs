@@ -45,6 +45,8 @@ lazy_static! {
             (0x80000007, "EV_EFI_ACTION"),
             (0x80000008, "EV_EFI_PLATFORM_FIRMWARE_BLOB"),
             (0x80000009, "EV_EFI_HANDOFF_TABLES"),
+            (0x8000000a, "EV_EFI_PLATFORM_FIRMWARE_BLOB2"),
+            (0x8000000b, "EV_EFI_HANDOFF_TABLES2"),
             (0x800000e0, "EV_EFI_VARIABLE_AUTHORITY"),
         ]
     );
