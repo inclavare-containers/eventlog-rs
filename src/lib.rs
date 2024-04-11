@@ -95,6 +95,7 @@ impl TryFrom<Vec<u8>> for Eventlog {
         let mut digest_size_map: HashMap<u16, u16> = HashMap::new();
 
         while index < data.len() as usize {
+            let stop_flag = (&data[index..(index + 8)]).read_u64::<LittleEndian>()?;
             let target_measurement_registry =
                 (&data[index..(index + 4)]).read_u32::<LittleEndian>()?;
             index += 4;
@@ -122,9 +123,7 @@ impl TryFrom<Vec<u8>> for Eventlog {
                 continue;
             }
 
-            if target_measurement_registry == 0xFFFFFFFF
-                || target_measurement_registry == 0x00000000
-            {
+            if stop_flag == 0xFFFFFFFFFFFFFFFF || stop_flag == 0x0000000000000000 {
                 break;
             }
 
