@@ -8,7 +8,10 @@ use std::convert::TryFrom;
 
 const RTMR_LENGTH_BY_BYTES: usize = 48;
 
+mod bios_eventlog;
 mod enums;
+
+pub use bios_eventlog::BiosEventlog;
 
 #[derive(Clone)]
 pub struct Eventlog {
@@ -26,7 +29,8 @@ impl fmt::Display for Eventlog {
                 event_entry.event_type,
                 event_entry.digests[0].algorithm,
                 hex::encode(event_entry.digests[0].digest.clone()),
-                hex::encode(event_entry.event_desc),
+                String::from_utf8(event_entry.event_desc.clone())
+                    .unwrap_or_else(|_| hex::encode(event_entry.event_desc.clone())),
             );
         }
 
