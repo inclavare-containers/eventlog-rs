@@ -12,6 +12,7 @@ mod bios_eventlog;
 mod enums;
 
 pub use bios_eventlog::BiosEventlog;
+pub mod read;
 
 #[derive(Clone)]
 pub struct Eventlog {
