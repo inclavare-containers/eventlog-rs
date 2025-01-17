@@ -24,9 +24,10 @@ impl fmt::Display for Eventlog {
         let mut parsed_el = String::default();
         for event_entry in self.log.clone() {
             parsed_el = format!(
-                "{}\nEvent Entry:\n\tRTMR: {}\n\tEvent Type: {}\n\tDigest Algorithm: {}\n\tDigest: {}\n\tEvent Desc: {}\n",
+                "{}\nEvent Entry:\n\tRTMR: {}\n\tEvent Type id: {}\n\tEvent Type: {}\n\tDigest Algorithm: {}\n\tDigest: {}\n\tEvent Desc: {}\n",
                 parsed_el,
                 event_entry.target_measurement_registry,
+                format!("0x{:08X}", event_entry.event_type_id),
                 event_entry.event_type,
                 event_entry.digests[0].algorithm,
                 hex::encode(event_entry.digests[0].digest.clone()),
@@ -42,6 +43,7 @@ impl fmt::Display for Eventlog {
 #[derive(Clone)]
 pub struct EventlogEntry {
     pub target_measurement_registry: u32,
+    pub event_type_id: u32,
     pub event_type: String,
     pub digests: Vec<ElDigest>,
     pub event_desc: Vec<u8>,
@@ -112,6 +114,7 @@ impl TryFrom<Vec<u8>> for Eventlog {
                 None => format!("UNKOWN_TYPE: {:x}", &event_type_num),
             };
 
+            let event_type_id = event_type_num;
             if event_type == "EV_NO_ACTION".to_string() {
                 index += 48;
                 let algo_number = (&data[index..(index + 4)]).read_u32::<LittleEndian>()?;
@@ -160,6 +163,7 @@ impl TryFrom<Vec<u8>> for Eventlog {
 
             let eventlog_entry = EventlogEntry {
                 target_measurement_registry,
+                event_type_id,
                 event_type,
                 digests,
                 event_desc,
