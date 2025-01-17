@@ -16,7 +16,7 @@ fn main() {
     let data = fs::read(path).unwrap();
 
     let event_log = eventlog_rs::Eventlog::try_from(data).unwrap();
-    let _replayed_rtmr = event_log.replay_measurement_regiestry();
+    let _replayed_rtmr = event_log.replay_measurement_registry();
 
     println!("{}", event_log);
 }

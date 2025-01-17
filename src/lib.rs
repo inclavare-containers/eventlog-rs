@@ -56,7 +56,7 @@ pub struct ElDigest {
 }
 
 impl Eventlog {
-    pub fn replay_measurement_regiestry(&self) -> HashMap<u32, Vec<u8>> {
+    pub fn replay_measurement_registry(&self) -> HashMap<u32, Vec<u8>> {
         // result dictionary for classifying event logs by rtmr index
         // the key is a integer, which represents rtmr index
         // the value is a list of event log entries whose rtmr index is equal to its related key
@@ -111,7 +111,7 @@ impl TryFrom<Vec<u8>> for Eventlog {
             index += 4;
             let event_type = match EVENTLOG_TYPES.get(&event_type_num) {
                 Some(type_name) => type_name.to_string(),
-                None => format!("UNKOWN_TYPE: {:x}", &event_type_num),
+                None => format!("UNKNOWN_TYPE: {:x}", &event_type_num),
             };
 
             let event_type_id = event_type_num;
@@ -143,7 +143,7 @@ impl TryFrom<Vec<u8>> for Eventlog {
                 index += 2;
                 let algorithm = match TCG_ALGORITHMS.get(&digest_algo_num) {
                     Some(digest_algo_name) => digest_algo_name.to_string(),
-                    None => format!("UNKOWN_ALGORITHM: {:x}", &digest_algo_num),
+                    None => format!("UNKNOWN_ALGORITHM: {:x}", &digest_algo_num),
                 };
                 let digest_size = digest_size_map
                     .get(&digest_algo_num)
