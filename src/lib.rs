@@ -2,11 +2,10 @@ use anyhow::{anyhow, Result};
 use byteorder::{LittleEndian, ReadBytesExt};
 use core::fmt;
 use enums::{EVENTLOG_TYPES, TCG_ALGORITHMS};
-use sha2::{Digest, Sha384};
+use sha2::digest::FixedOutput;
+use sha2::{Digest, Sha256, Sha384};
 use std::collections::HashMap;
 use std::convert::TryFrom;
-
-const RTMR_LENGTH_BY_BYTES: usize = 48;
 
 mod bios_eventlog;
 mod enums;
@@ -55,8 +54,48 @@ pub struct ElDigest {
     pub digest: Vec<u8>,
 }
 
+pub enum HashAlgorithm {
+    Sha256,
+    Sha384,
+}
+
+impl HashAlgorithm {
+    pub fn digest_length(&self) -> usize {
+        match self {
+            HashAlgorithm::Sha256 => 32,
+            HashAlgorithm::Sha384 => 48,
+        }
+    }
+
+    pub fn hash<'a, I>(&self, data: I) -> Vec<u8>
+    where
+        I: Iterator<Item = &'a [u8]>,
+    {
+        match self {
+            HashAlgorithm::Sha256 => self.accumulate_hash::<Sha256, _>(data),
+            HashAlgorithm::Sha384 => self.accumulate_hash::<Sha384, _>(data),
+        }
+    }
+
+    fn accumulate_hash<'a, D: Digest + FixedOutput, I>(&self, data: I) -> Vec<u8>
+    where
+        I: Iterator<Item = &'a [u8]>,
+    {
+        let mut hasher = D::new();
+        for slice in data {
+            Digest::update(&mut hasher, slice);
+        }
+
+        let res = hasher.finalize().to_vec();
+        res
+    }
+}
+
 impl Eventlog {
-    pub fn replay_measurement_registry(&self) -> HashMap<u32, Vec<u8>> {
+    pub fn replay_measurement_registry(
+        &self,
+        hash_algorithm: HashAlgorithm,
+    ) -> HashMap<u32, Vec<u8>> {
         // result dictionary for classifying event logs by pcr index
         // the key is a integer, which represents pcr index
         // the value is a list of event log entries whose pcr index is equal to its related key
@@ -77,16 +116,13 @@ impl Eventlog {
         }
 
         for (mr_index, log_set) in event_logs_by_mr_index.iter() {
-            let mut mr_value = [0; RTMR_LENGTH_BY_BYTES];
+            let mut mr_value = vec![0; hash_algorithm.digest_length()];
 
             for log in log_set.iter() {
-                let digest = &log.digests[0].digest;
-                let mut sha384_algo = Sha384::new();
-                sha384_algo.update(&mr_value);
-                sha384_algo.update(digest.as_slice());
-                mr_value.copy_from_slice(sha384_algo.finalize().as_slice());
+                mr_value = hash_algorithm
+                    .hash([mr_value.as_slice(), log.digests[0].digest.as_slice()].into_iter());
             }
-            result.insert(mr_index.clone(), mr_value.to_vec());
+            result.insert(mr_index.clone(), mr_value);
         }
 
         result
