@@ -24,7 +24,7 @@ impl fmt::Display for Eventlog {
         let mut parsed_el = String::default();
         for event_entry in self.log.clone() {
             parsed_el = format!(
-                "{}\nEvent Entry:\n\tRTMR: {}\n\tEvent Type id: {}\n\tEvent Type: {}\n\tDigest Algorithm: {}\n\tDigest: {}\n\tEvent Desc: {}\n",
+                "{}\nEvent Entry:\n\tPCR: {}\n\tEvent Type id: {}\n\tEvent Type: {}\n\tDigest Algorithm: {}\n\tDigest: {}\n\tEvent Desc: {}\n",
                 parsed_el,
                 event_entry.target_measurement_registry,
                 format!("0x{:08X}", event_entry.event_type_id),
@@ -57,9 +57,9 @@ pub struct ElDigest {
 
 impl Eventlog {
     pub fn replay_measurement_registry(&self) -> HashMap<u32, Vec<u8>> {
-        // result dictionary for classifying event logs by rtmr index
-        // the key is a integer, which represents rtmr index
-        // the value is a list of event log entries whose rtmr index is equal to its related key
+        // result dictionary for classifying event logs by pcr index
+        // the key is a integer, which represents pcr index
+        // the value is a list of event log entries whose pcr index is equal to its related key
         let mut event_logs_by_mr_index: HashMap<u32, Vec<EventlogEntry>> = HashMap::new();
 
         let mut result: HashMap<u32, Vec<u8>> = HashMap::new();

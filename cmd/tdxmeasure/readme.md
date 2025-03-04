@@ -20,7 +20,7 @@ Log Address:  0x1B10B000
 
 => Read Event Log Data - Address: 0x1B10B000(0x10000)
 ==== TDX Event Log Entry - 0 [0x1B10B000] ====
-RTMR              : 0
+PCR              : 0
 Type              : 3 (EV_NO_ACTION)
 Length            : 65
 Algorithms Number : 1
@@ -33,7 +33,7 @@ RAW DATA: ----------------------------------------------
 1B10B040  00                                               .
 RAW DATA: ----------------------------------------------
 ==== TDX Event Log Entry - 1 [0x1B10B041] ====
-RTMR              : 0
+PCR              : 0
 Type              : 0x8000000B (UNKNOWN)
 Length            : 108
 event             : b'\tTdxTable\x00\x01\x00\x00\x00\x00\x00\x00\x00\xaf\x96\xbb\x93\xf2\xb9\xb8N\x94b\xe0\xbatVB6\x00\x90\x80\x00\x00\x00\x00\x00'
