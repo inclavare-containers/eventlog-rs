@@ -92,37 +92,34 @@ impl HashAlgorithm {
 }
 
 impl Eventlog {
-    pub fn replay_measurement_registry(
+    /// Replay measurement registers with event logs.
+    /// If not provided the input mapping, the result will be a dictionary whose key is pcr
+    /// index and value is the measurement value.
+    ///
+    /// If provided the input mapping, the PCRs with index specified by the mapping will be
+    /// mapped to the value (which is usually the RTMR index). The result dictionary will
+    /// be a dictionary whose key is the RTMR index and value is the measurement value.
+    pub fn replay_measurement_registry<F>(
         &self,
         hash_algorithm: HashAlgorithm,
-    ) -> HashMap<u32, Vec<u8>> {
-        // result dictionary for classifying event logs by pcr index
-        // the key is a integer, which represents pcr index
-        // the value is a list of event log entries whose pcr index is equal to its related key
-        let mut event_logs_by_mr_index: HashMap<u32, Vec<EventlogEntry>> = HashMap::new();
-
+        pcr_to_rtmr_mapping: F,
+    ) -> HashMap<u32, Vec<u8>>
+    where
+        F: Fn(u32) -> u32,
+    {
         let mut result: HashMap<u32, Vec<u8>> = HashMap::new();
-
-        for log_entry in self.log.iter() {
-            match event_logs_by_mr_index.get_mut(&log_entry.target_measurement_registry) {
-                Some(logs) => logs.push(log_entry.clone()),
-                None => {
-                    event_logs_by_mr_index.insert(
-                        log_entry.target_measurement_registry,
-                        vec![log_entry.clone()],
-                    );
-                }
+        for log_entry in &self.log {
+            let pcr_index = log_entry.target_measurement_registry;
+            let rtmr_index = pcr_to_rtmr_mapping(pcr_index);
+            if !result.contains_key(&rtmr_index) {
+                result.insert(rtmr_index, vec![0; hash_algorithm.digest_length()]);
             }
-        }
 
-        for (mr_index, log_set) in event_logs_by_mr_index.iter() {
-            let mut mr_value = vec![0; hash_algorithm.digest_length()];
+            let mr_value = hash_algorithm
+                .hash([&result[&rtmr_index], log_entry.digests[0].digest.as_slice()].into_iter());
 
-            for log in log_set.iter() {
-                mr_value = hash_algorithm
-                    .hash([mr_value.as_slice(), log.digests[0].digest.as_slice()].into_iter());
-            }
-            result.insert(mr_index.clone(), mr_value);
+            let value = result.get_mut(&rtmr_index).unwrap();
+            *value = mr_value;
         }
 
         result
