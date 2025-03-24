@@ -5,6 +5,7 @@ lazy_static! {
     pub static ref TCG_ALGORITHMS: HashMap<u16, &'static str> = HashMap::from([
         (0x1, "TPM_ALG_RSA"),
         (0x3, "TPM_ALG_TDES"),
+        (0x4, "TPM_ALG_SHA1"),
         (0xB, "TPM_ALG_SHA256"),
         (0xC, "TPM_ALG_SHA384"),
         (0xD, "TPM_ALG_SHA512"),
