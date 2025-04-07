@@ -12,7 +12,10 @@ mod bios_eventlog;
 mod enums;
 
 pub use bios_eventlog::BiosEventlog;
+mod parser;
 pub mod read;
+use parser::parsers::blank::EvBlankParser;
+use parser::PARSER_MAP;
 
 #[derive(Clone)]
 pub struct Eventlog {
@@ -24,20 +27,29 @@ impl fmt::Display for Eventlog {
         let mut parsed_el = String::default();
         for event_entry in self.log.clone() {
             parsed_el = format!(
-                "{}\nEvent Entry:\n\tRTMR: {}\n\tEvent Type id: {}\n\tEvent Type: {}\n\tDigest Algorithm: {}\n\tDigest: {}\n\tEvent Desc: {}\n",
+                "{}\nEvent Entry:\n\tRTMR: {}\n\tEvent Type id: {}\n\tEvent Type: {}\n\tDigest Algorithm: {}\n\tDigest: {}\n\tEvent Desc: {}\n\tEvent Desc HEX: {}\n",
                 parsed_el,
                 event_entry.target_measurement_registry,
                 format!("0x{:08X}", event_entry.event_type_id),
                 event_entry.event_type,
                 event_entry.digests[0].algorithm,
                 hex::encode(event_entry.digests[0].digest.clone()),
-                String::from_utf8(event_entry.event_desc.clone())
-                    .unwrap_or_else(|_| hex::encode(event_entry.event_desc.clone())),
+                event_entry.event_desc.clone(),
+                event_entry.event_desc_hex.clone()
             );
         }
 
         write!(f, "{parsed_el}")
     }
+}
+
+fn parse_tag_event(event_type: &str, data: Vec<u8>) -> String {
+    let parser = PARSER_MAP
+        .get(event_type)
+        .map(|p| p.as_ref())
+        .unwrap_or(&EvBlankParser);
+
+    parser.parse_description(data)
 }
 
 #[derive(Clone)]
@@ -46,7 +58,8 @@ pub struct EventlogEntry {
     pub event_type_id: u32,
     pub event_type: String,
     pub digests: Vec<ElDigest>,
-    pub event_desc: Vec<u8>,
+    pub event_desc_hex: String,
+    pub event_desc: String,
 }
 
 #[derive(Debug, Clone)]
@@ -158,14 +171,19 @@ impl TryFrom<Vec<u8>> for Eventlog {
 
             let event_desc_size = (&data[index..(index + 4)]).read_u32::<LittleEndian>()? as usize;
             index += 4;
-            let event_desc = data[index..(index + event_desc_size)].to_vec();
+            let event_desc_raw = data[index..(index + event_desc_size)].to_vec();
             index += event_desc_size;
+
+            let event_desc_hex = hex::encode(event_desc_raw.clone());
+
+            let event_desc = parse_tag_event(&event_type, event_desc_raw.clone());
 
             let eventlog_entry = EventlogEntry {
                 target_measurement_registry,
                 event_type_id,
                 event_type,
                 digests,
+                event_desc_hex,
                 event_desc,
             };
 

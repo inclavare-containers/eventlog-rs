@@ -48,7 +48,11 @@ lazy_static! {
             (0x80000009, "EV_EFI_HANDOFF_TABLES"),
             (0x8000000a, "EV_EFI_PLATFORM_FIRMWARE_BLOB2"),
             (0x8000000b, "EV_EFI_HANDOFF_TABLES2"),
+            (0x8000000c, "EV_EFI_VARIABLE_BOOT2"),
+            (0x80000010, "EV_EFI_HCRTM_EVENT"),
             (0x800000e0, "EV_EFI_VARIABLE_AUTHORITY"),
+            (0x800000E1, "EV_EFI_SPDM_FIRMWARE_BLOB"),
+            (0x800000E2, "EV_EFI_SPDM_FIRMWARE_CONFIG"),
         ]
     );
 }
