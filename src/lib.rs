@@ -24,7 +24,7 @@ impl fmt::Display for Eventlog {
         let mut parsed_el = String::default();
         for event_entry in self.log.clone() {
             parsed_el = format!(
-                "{}\nEvent Entry:\n\tRTMR: {}\n\tEvent Type id: {}\n\tEvent Type: {}\n\tDigest Algorithm: {}\n\tDigest: {}\n\tEvent Desc: {}\n",
+                "{}\nEvent Entry:\nPCR(CC Event Log MR): {}\n\tEvent Type id: {}\n\tEvent Type: {}\n\tDigest Algorithm: {}\n\tDigest: {}\n\tEvent Desc: {}\n",
                 parsed_el,
                 event_entry.target_measurement_registry,
                 format!("0x{:08X}", event_entry.event_type_id),
