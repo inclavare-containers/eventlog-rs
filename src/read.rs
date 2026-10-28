@@ -67,7 +67,7 @@ pub fn read_ccel() -> Result<Vec<u8>> {
     let length = (&efi_acpi_description[index..index + 4]).read_u32::<LittleEndian>()?;
     index += 32;
 
-    let rsv = (&efi_acpi_description[index..index + 4]).read_u32::<LittleEndian>()?;
+    let _rsv = (&efi_acpi_description[index..index + 4]).read_u32::<LittleEndian>()?;
     index += 4;
 
     let laml = (&efi_acpi_description[index..index + 8]).read_u64::<LittleEndian>()?;
@@ -78,10 +78,6 @@ pub fn read_ccel() -> Result<Vec<u8>> {
     let ccel_signature = u32::from_le_bytes(CCEL_SIGNATURE.try_into()?);
     if signature != ccel_signature {
         bail!("invalid CCEL ACPI table: wrong CCEL signature");
-    }
-
-    if rsv != 0 {
-        bail!("invalid CCEL ACPI table: RSV must be 0");
     }
 
     if length != efi_acpi_description.len() as u32 {
